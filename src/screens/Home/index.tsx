@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
 import {
 	Container,
@@ -14,6 +15,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { Car } from '../../components/Car';
 
 export function Home(){
+	const nativation = useNavigation();
 	const carData = [
 		{
 			brand: 'Audi',
@@ -25,6 +27,10 @@ export function Home(){
 			thumbnail: 'https://freepngimg.com/thumb/audi/35227-5-audi-rs5-red.png'
 		}
 	]
+
+	function handleCarDatails(){
+		nativation.navigate('CarDatails');
+	}
 	return (
 		<Container>
 			<StatusBar
@@ -46,7 +52,9 @@ export function Home(){
 			<CarList
 				data={[1,2,3]}
 				keyExtractor={item => String(item)}
-				renderItem={({ item }) => <Car data={carData[0]}/>}
+				renderItem={({ item }) =>
+					<Car data={carData[0]} onPress={handleCarDatails}/>
+				}
 			/>
 
 		</Container>

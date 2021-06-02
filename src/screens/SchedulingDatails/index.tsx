@@ -1,6 +1,10 @@
 import React from 'react';
-
 import { useNavigation } from '@react-navigation/native';
+import { RFValue } from 'react-native-responsive-fontsize';
+import { Feather } from '@expo/vector-icons';
+
+import { useTheme } from 'styled-components';
+
 import { BackButton } from '../../components/BackButton';
 import { ImageSlider } from '../../components/ImageSlider';
 import { Accessory } from '../../components/Accessory';
@@ -25,16 +29,26 @@ import {
 	Rent,
 	Period,
 	Price,
-	About,
 	Accessories,
-	Footer
+	Footer,
+	RentalPeriod,
+	CalendarIcon,
+	DateInfo,
+	DateTitle,
+	DateValue,
+	RentalPrice,
+	RentalPriceLabel,
+	RentalPriceDetails,
+	RentalPriceQuota,
+	RentalPriceTotal,
 	} from './styles';
 
-export function CarDatails(){
+export function SchedulingDatails(){
+	const theme = useTheme();
 	const nativation = useNavigation();
 
-	function handleSelectPeriod(){
-		nativation.navigate('Scheduling');
+	function handleRentalComplete(){
+		nativation.navigate('SchedulingComplete');
 	}
 	return (
 		<Container>
@@ -64,16 +78,43 @@ export function CarDatails(){
 					<Accessory name="Gaoslina" icon ={gasolineSvg}/>
 					<Accessory name="Auto" icon ={exchangeSvg}/>
 					<Accessory name="2 pessoas" icon ={peopleSvg}/>
+					<RentalPeriod>
+						<CalendarIcon>
+							<Feather
+								name="calendar"
+								size={RFValue(24)}
+								color={theme.colors.shape}
+							/>
+						</CalendarIcon>
+						<DateInfo>
+							<DateTitle>DE</DateTitle>
+							<DateValue>01/07/2021</DateValue>
+						</DateInfo>
+						<Feather
+							name="chevron-right"
+							size={RFValue(10)}
+							color={theme.colors.text}
+						/>
+						<DateInfo>
+							<DateTitle>ATÉ</DateTitle>
+							<DateValue>01/07/2021</DateValue>
+						</DateInfo>
+					</RentalPeriod>
+					<RentalPrice>
+						<RentalPriceLabel>TOTAL</RentalPriceLabel>
+						<RentalPriceDetails>
+							<RentalPriceQuota>R$ 580 x3 diárias</RentalPriceQuota>
+							<RentalPriceTotal>R$ 2.900</RentalPriceTotal>
+						</RentalPriceDetails>
+					</RentalPrice>
 				</Accessories>
-				<About>
-					Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-					Possimus molestiae, numquam tempora nihil corrupti
-					consequatur? Incidunt repellat adipisci doloremque amet
-					illum nisi.
-				</About>
 			</Content>
 			<Footer>
-				<Button title="Escolher período do alugel" onPress={handleSelectPeriod}/>
+				<Button
+					title="Alugar Agora"
+					onPress={handleRentalComplete}
+					color={theme.colors.success}
+				/>
 			</Footer>
 		</Container>
 
