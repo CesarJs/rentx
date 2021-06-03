@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from 'styled-components';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { StatusBar } from 'react-native';
-
+import { Ionicons } from '@expo/vector-icons';
 import {
 	Container,
 	Header,
 	HeaderContent,
 	TotalCars,
-	CarList
+	CarList,
+	MyCarsButton
 } from './styles';
 
 import api from '../../services/api';
@@ -21,6 +23,7 @@ export function Home(){
 	const navigation = useNavigation();
 	const [ cars, setCars ] = useState<CarDTO[]>([]);
 	const [ loading, setLoading ] = useState(true);
+	const theme = useTheme();
 	const carData = [
 		{
 			brand: 'Audi',
@@ -35,6 +38,9 @@ export function Home(){
 
 	function handleCarDatails(car: CarDTO){
 		navigation.navigate('CarDatails', { car });
+	}
+	function handleOpenMyCars(){
+		navigation.navigate('MyCars');
 	}
 	useEffect(() => {
 		async function fetCars() {
@@ -77,7 +83,13 @@ export function Home(){
 				}
 				/>
 			}
-
+		<MyCarsButton onPress={handleOpenMyCars}>
+			<Ionicons
+				name="ios-car-sport"
+				size={RFValue(32)}
+				color={theme.colors.shape}
+				/>
+		</MyCarsButton>
 		</Container>
 
 	)
