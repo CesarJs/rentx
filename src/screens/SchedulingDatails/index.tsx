@@ -86,7 +86,10 @@ export function SchedulingDatails(){
 			unavailable_dates
 		})
 		.then(response => navigation.navigate('SchedulingComplete'))
-		.catch(() => Alert.alert('Não foi possivel confirmar o agendamento.'));
+		.catch(() => {
+			Alert.alert('Não foi possivel confirmar o agendamento.');
+			setSendRequest(false);
+		});
 
 	}
 	function handleBack() {

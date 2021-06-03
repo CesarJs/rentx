@@ -28,7 +28,7 @@ import {
 } from './styles';
 import { Car } from '../../components/Car';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { Load } from '../../components/Load';
+import { LoadAnimate } from '../../components/LoadAnimate';
 
 interface CarProps {
 	id: number;
@@ -83,7 +83,7 @@ export function MyCars(){
 			</Header>
 			{loading
 			?
-				<Load />
+				<LoadAnimate />
 			:
 				<Content>
 					<Appointments>
