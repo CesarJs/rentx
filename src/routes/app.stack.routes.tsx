@@ -5,30 +5,22 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Home } from '../screens/Home';
 import { CarDatails } from '../screens/CarDatails';
 import { Scheduling } from '../screens/Scheduling';
-import { SchedulingComplete } from '../screens/SchedulingComplete';
+import { Confirmation } from '../screens/Confirmation';
 import { SchedulingDatails } from '../screens/SchedulingDatails';
 import { MyCars } from '../screens/MyCars';
-import { Splash } from '../screens/Splash';
 
 const { Navigator, Screen } = createStackNavigator();
 
 
-export function StackRoutes() {
+export function AppStackRoutes() {
 	 return (
 		<Navigator
 			headerMode="none"
 			initialRouteName="Splash"
 		>
 			<Screen
-				name="Splash"
-				component={Splash}
-			/>
-			<Screen
 				name="Home"
 				component={Home}
-				options={{
-					gestureEnabled: false,
-				}}
 			/>
 			<Screen
 				name="CarDatails"
@@ -39,8 +31,8 @@ export function StackRoutes() {
 				component={Scheduling}
 			/>
 			<Screen
-				name="SchedulingComplete"
-				component={SchedulingComplete}
+				name="Confirmation"
+				component={Confirmation}
 			/>
 			<Screen
 				name="SchedulingDatails"

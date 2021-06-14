@@ -17,11 +17,12 @@ import { useNavigation } from '@react-navigation/core';
 import {
 	Container,
 } from './styles';
+import { useAuth } from '../../hooks/auth';
 
 export function Splash(){
 	const splashAnimation = useSharedValue(0);
 	const navigation = useNavigation();
-
+	const { user } = useAuth();
 	const brandStyle = useAnimatedStyle(() => {
 		return {
 			opacity: interpolate(splashAnimation.value, [0, 50], [1, 0] ),
@@ -54,7 +55,11 @@ export function Splash(){
 	});
 
 	function startApp() {
-		navigation.navigate('Home');
+		if(user.id){
+			navigation.navigate('Home');
+		}else{
+			navigation.navigate('Signin');
+		}
 	}
 
 	useEffect(() => {
