@@ -52,6 +52,7 @@ export function PasswordInput({
 				onBlur={handleInputBlur}
 				{...rest}
 				secureTextEntry={visiblePaswd}
+				autoCorrect={false}
 			/>
 			<BorderlessButton onPress={handleChangeVisiblePaswd}>
 				<IconContainer>

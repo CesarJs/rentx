@@ -84,18 +84,27 @@ export function Home(){
 		navigation.navigate('MyCars');
 	}
 	useEffect(() => {
+		let isMounted = true;
 		async function fetCars() {
 			try {
 				const response = await api.get('/cars');
-				setCars(response.data);
+				if(isMounted){
+					setCars(response.data);
+				}
 			} catch (error) {
 				console.log(error);
 			}finally{
-				setLoading(false);
+				if(isMounted){
+					setLoading(false);
+				}
 			}
 
 		}
 		fetCars();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
