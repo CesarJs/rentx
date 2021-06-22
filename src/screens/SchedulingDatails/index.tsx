@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 
 import { useTheme } from 'styled-components';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 import { BackButton } from '../../components/BackButton';
 import { ImageSlider } from '../../components/ImageSlider';
@@ -54,9 +55,11 @@ interface RentalPeriod{
 }
 
 export function SchedulingDatails(){
-
+	const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO);
 	const [ rentalPeriod, setRentalPeriod ] = useState<RentalPeriod>({} as RentalPeriod);
 	const [ sendRequest , setSendRequest ] = useState( false );
+
+	const netInfo = useNetInfo();
 	const theme = useTheme();
 	const navigation = useNavigation();
 	const route = useRoute();
@@ -68,22 +71,13 @@ export function SchedulingDatails(){
 	}
 	async function handleRentalComplete(){
 		setSendRequest( true );
-		const schedulesByCar = await api.get(`/schedules_bycars/${car.id}`);
 
-		const unavailable_dates = [
-			...schedulesByCar.data.unavailable_dates,
-			...dates
-		];
-		await api.post(`schedules_byuser`, {
+		await api.post(`rentals`, {
 			user_id: 1,
-			car,
-			startDate: rentalPeriod.start,
-			endDate: rentalPeriod.end
-		});
-
-		api.put(`/schedules_bycars/${car.id}`, {
-			id: car.id,
-			unavailable_dates
+			car_id: car.id,
+			start_data: rentalPeriod.start,
+			end_date: rentalPeriod.end,
+			total: rentalTotal.total
 		})
 		.then(response => {
 			navigation.navigate('Confirmation', {
@@ -107,6 +101,16 @@ export function SchedulingDatails(){
 			end: 	format(getPlatformDate(new Date(dates[(dates.length - 1)])), 'dd-MM-yyyy')
 		});
 	}, []);
+
+	useEffect(() => {
+		async function fecthCarUpdate() {
+			const { data } = await api.get(`/cars/${car.id}`);
+			setCarUpdated(data);
+		}
+		if(netInfo.isConnected === true){
+			fecthCarUpdate();
+		}
+	}, [netInfo.isConnected]);
 	return (
 		<Container>
 			<Header>
@@ -114,8 +118,11 @@ export function SchedulingDatails(){
 			</Header>
 			<CarImages>
 				<ImageSlider
-					imagesUrl={car.photos}
-					/>
+					imagesUrl={
+						!!carUpdated.photos ?
+						carUpdated.photos: [{ id: car.thumbnail, photo: car.thumbnail}]
+					}
+				/>
 			</CarImages>
 			<Content>
 				<Details>
@@ -128,44 +135,47 @@ export function SchedulingDatails(){
 						<Price>R$ {car.price}</Price>
 					</Rent>
 				</Details>
-				<Accessories>
-					{car.accessories.map((acessory) => (
-						<Accessory
-							key={acessory.name}
-							name={acessory.name}
-							icon ={getAcessoryIcons(acessory.type)}
-						/>
-					))}
-					<RentalPeriod>
-						<CalendarIcon>
-							<Feather
-								name="calendar"
-								size={RFValue(24)}
-								color={theme.colors.shape}
+				{carUpdated.accessories &&
+					<Accessories>
+						{carUpdated.accessories.map((acessory) => (
+							<Accessory
+								key={acessory.name}
+								name={acessory.name}
+								icon ={getAcessoryIcons(acessory.type)}
 							/>
-						</CalendarIcon>
-						<DateInfo>
-							<DateTitle>DE</DateTitle>
-							<DateValue>{rentalPeriod.start}</DateValue>
-						</DateInfo>
+						))}
+					</Accessories>
+				}
+				<RentalPeriod>
+					<CalendarIcon>
 						<Feather
-							name="chevron-right"
-							size={RFValue(10)}
-							color={theme.colors.text}
+							name="calendar"
+							size={RFValue(24)}
+							color={theme.colors.shape}
 						/>
-						<DateInfo>
-							<DateTitle>ATÉ</DateTitle>
-							<DateValue>{rentalPeriod.end}</DateValue>
-						</DateInfo>
-					</RentalPeriod>
-					<RentalPrice>
-						<RentalPriceLabel>TOTAL</RentalPriceLabel>
-						<RentalPriceDetails>
-							<RentalPriceQuota>{`R$ ${car.price} x${rentalTotal.diarias} diárias`}</RentalPriceQuota>
-							<RentalPriceTotal>R$ {rentalTotal.total}</RentalPriceTotal>
-						</RentalPriceDetails>
-					</RentalPrice>
-				</Accessories>
+					</CalendarIcon>
+					<DateInfo>
+						<DateTitle>DE</DateTitle>
+						<DateValue>{rentalPeriod.start}</DateValue>
+					</DateInfo>
+					<Feather
+						name="chevron-right"
+						size={RFValue(10)}
+						color={theme.colors.text}
+					/>
+					<DateInfo>
+						<DateTitle>ATÉ</DateTitle>
+						<DateValue>{rentalPeriod.end}</DateValue>
+					</DateInfo>
+				</RentalPeriod>
+				<RentalPrice>
+					<RentalPriceLabel>TOTAL</RentalPriceLabel>
+					<RentalPriceDetails>
+						<RentalPriceQuota>{`R$ ${car.price} x${rentalTotal.diarias} diárias`}</RentalPriceQuota>
+						<RentalPriceTotal>R$ {rentalTotal.total}</RentalPriceTotal>
+					</RentalPriceDetails>
+				</RentalPrice>
+
 			</Content>
 			<Footer>
 				<Button

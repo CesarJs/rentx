@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'styled-components';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { StatusBar, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StatusBar, Button } from 'react-native';
 import { RectButton, PanGestureHandler } from 'react-native-gesture-handler';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { synchronize } from '@nozbe/watermelondb/sync';
+
+import { database } from '../../database';
+import api from '../../services/api';
 
 import Animated , {
 	useSharedValue,
@@ -23,18 +27,20 @@ import {
 	CarList
 } from './styles';
 
-import api from '../../services/api';
 import Logo from '../../assets/logo.svg';
 import { Car } from '../../components/Car';
+import { Car as ModelCar } from '../../database/models/car';
 import { LoadAnimate } from '../../components/LoadAnimate';
 import { CarDTO } from '../../dtos/CarDTO';
 
 
 export function Home(){
-	const navigation = useNavigation();
-	const [ cars, setCars ] = useState<CarDTO[]>([]);
+
+	const [ cars, setCars ] = useState<ModelCar[]>([]);
 	const [ loading, setLoading ] = useState(true);
 
+	const netinfo = useNetInfo();
+	const navigation = useNavigation();
 	const positionY = useSharedValue(0);
 	const positionX = useSharedValue(0);
 
@@ -76,8 +82,30 @@ export function Home(){
 			thumbnail: 'https://freepngimg.com/thumb/audi/35227-5-audi-rs5-red.png'
 		}
 	]
+	async function resetDatabase() {
+		await database.unsafeResetDatabase();
+	}
+	async function offilneSyncronize() {
 
-	function handleCarDatails(car: CarDTO){
+		await synchronize({
+			database,
+			pullChanges: async({ lastPulledAt }) => {
+
+				const response = await api
+				.get(`cars/sync/pull?lastPulledVersion=${lastPulledAt || 0}`);
+				const { changes, latestVersion } = response.data;
+				return { changes, timestamp: latestVersion}
+			},
+			pushChanges: async({ changes }) => {
+				const user = changes.users ;
+				if(user){
+					await api.post('/users/sync', user);
+				}
+			}
+		});
+
+	}
+	function handleCarDatails(car: ModelCar){
 		navigation.navigate('CarDatails', { car });
 	}
 	function handleOpenMyCars(){
@@ -87,9 +115,11 @@ export function Home(){
 		let isMounted = true;
 		async function fetCars() {
 			try {
-				const response = await api.get('/cars');
+				const carColletion = database.get<ModelCar>('cars');
+				const cars = await carColletion.query().fetch();
+				console.log('cars',cars);
 				if(isMounted){
-					setCars(response.data);
+					setCars(cars);
 				}
 			} catch (error) {
 				console.log(error);
@@ -107,6 +137,12 @@ export function Home(){
 		};
 	}, []);
 
+	useEffect(() => {
+
+		if(netinfo.isConnected === true){
+			offilneSyncronize();
+		}
+	}, [netinfo.isConnected]);
 	return (
 		<Container>
 			<StatusBar
@@ -166,12 +202,3 @@ export function Home(){
 }
 
 
-const styles = StyleSheet.create({
-	button: {
-		width: RFValue(60),
-		height: RFValue(60),
-		borderRadius: RFValue(30),
-		justifyContent: 'center',
-		alignItems: 'center',
-	}
-});

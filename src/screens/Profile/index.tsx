@@ -12,6 +12,9 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'styled-components';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useAuth } from '../../hooks/auth';
+import { useNetInfo } from '@react-native-community/netinfo';
+
 import {
 	Container,
 	Header,
@@ -32,7 +35,7 @@ import { BackButton } from '../../components/BackButton';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { PasswordInput } from '../../components/PasswordInput';
-import { useAuth } from '../../hooks/auth';
+
 
 
 
@@ -45,6 +48,7 @@ export function Profile(){
 	const [ email, setEmail ] = useState(user.email);
 	const [ driverLicense, setDriverLicense ] = useState(user.driver_license);
 
+	const netInfo = useNetInfo();
 	const theme = useTheme();
 	const navigation = useNavigation();
 
@@ -53,6 +57,9 @@ export function Profile(){
 	}
 
 	function handleOptionChange(opationselected : 'dataEdit' | 'passwordEdit'){
+		if(netInfo.isConnected === false && opationselected === 'passwordEdit'){
+			return Alert.alert('Você está offline', 'Acesse a internet para alterar a senha!');
+		}
 		setOption(opationselected);
 	}
 	async function handleAvatarSelect() {

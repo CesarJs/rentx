@@ -9,6 +9,7 @@ import React, {
 import api from '../services/api';
 import { database } from '../database';
 import { User as ModelUser} from '../database/models/user';
+import { Car as ModelCar } from '../database/models/car';
 
 interface User {
 	id: string;
@@ -76,10 +77,12 @@ function AuthProvider({ children }: AuthProviderProps){
 	async function signOut(){
 		try {
 			const userCollection = database.get<ModelUser>('users');
+			// const carCollection = database.get<ModelCar>('cars');
 			await database.action(async() => {
 				const userSelected = await userCollection.find(data.id);
-
+				// const carsSelected = await carCollection.query().fetch();
 				await userSelected.destroyPermanently();
+				// await carsSelected.map((car) => car.destroyPermanently());
 
 				setData({} as User);
 			});

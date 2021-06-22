@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import Animated, {
@@ -12,6 +12,7 @@ import { getStatusBarHeight } from 'react-native-iphone-x-helper';
 
 import { useTheme } from 'styled-components';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 import { BackButton } from '../../components/BackButton';
 import { ImageSlider } from '../../components/ImageSlider';
@@ -20,6 +21,9 @@ import { Button } from '../../components/Button';
 
 import { getAcessoryIcons } from '../../utils/getAcessoryIcons';
 import { CarDTO } from '../../dtos/CarDTO';
+import { Car as ModelCar } from '../../database/models/car';
+
+import api from '../../services/api';
 
 
 import {
@@ -35,14 +39,20 @@ import {
 	Price,
 	About,
 	Accessories,
-	Footer
+	Footer,
+	OfflineInfo
 } from './styles';
 
 
+
+
+
 interface Params {
-	car: CarDTO;
+	car: ModelCar;
 }
 export function CarDatails(){
+	const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO);
+	const netInfo = useNetInfo();
 	const navigation = useNavigation();
 	const route = useRoute();
 	const { car } = route.params as Params;
@@ -81,6 +91,15 @@ export function CarDatails(){
 	function handleBack() {
 		navigation.goBack();
 	}
+	useEffect(() => {
+		async function fecthCarUpdate() {
+			const { data } = await api.get(`/cars/${car.id}`);
+			setCarUpdated(data);
+		}
+		if(netInfo.isConnected === true){
+			fecthCarUpdate();
+		}
+	}, [netInfo.isConnected]);
 	return (
 		<Container>
 			<StatusBar
@@ -103,7 +122,10 @@ export function CarDatails(){
 				>
 					<CarImages>
 						<ImageSlider
-							imagesUrl={car.photos}
+							imagesUrl={
+								!!carUpdated.photos ?
+								carUpdated.photos: [{ id: car.thumbnail, photo: car.thumbnail}]
+							}
 							/>
 					</CarImages>
 				</Animated.View>
@@ -125,32 +147,38 @@ export function CarDatails(){
 					</Description>
 					<Rent>
 						<Period>{car.period}</Period>
-						<Price>R$ {car.price}</Price>
+						<Price>R$ {
+							netInfo.isConnected === true ? car.price :'...' }</Price>
 					</Rent>
 				</Details>
-				<Accessories>
-					{car.accessories.map((acessory) => (
-						<Accessory
-							key={acessory.name}
-							name={acessory.name}
-							icon ={getAcessoryIcons(acessory.type)}
-						/>
-					))}
-				</Accessories>
+
+				{carUpdated.accessories &&
+					<Accessories>
+						{carUpdated.accessories.map((acessory) => (
+							<Accessory
+								key={acessory.name}
+								name={acessory.name}
+								icon ={getAcessoryIcons(acessory.type)}
+							/>
+						))}
+					</Accessories>
+				}
 				<About>
 					{car.about}
-					{car.about}
-					{car.about}
-					{car.about}
-					{car.about}
-					{car.about}
-					{car.about}
-					{car.about}
-
 				</About>
 			</Animated.ScrollView>
 			<Footer>
-				<Button title="Escolher período do alugel" onPress={handleSelectPeriod}/>
+				<Button
+					title="Escolher período do alugel"
+					onPress={handleSelectPeriod}
+					enabled={netInfo.isConnected === true}
+				/>
+				{
+					netInfo.isConnected === false &&
+					<OfflineInfo>
+						Conecte-se a internet para ver mais detalhes e agendar seu carro.
+					</OfflineInfo>
+				}
 			</Footer>
 		</Container>
 
